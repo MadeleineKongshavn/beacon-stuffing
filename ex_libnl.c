@@ -6,10 +6,16 @@
 #include <netlink/genl/ctrl.h>
 #include <linux/genetlink.h>
 
+#include <netlink/netlink.h>
+#include <netlink/socket.h>
+
+
 static int expectedId;
 
 static int nlCallback(struct nl_msg* msg, void* arg)
 {
+//    printf("Trying to printf message: %s", msg)
+
     struct nlmsghdr* ret_hdr = nlmsg_hdr(msg);
     struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
 
@@ -33,6 +39,8 @@ static int nlCallback(struct nl_msg* msg, void* arg)
 }
 int main()
 {
+	int ret;
+
 	//int if_index = if_nametoindex("wlan0"); // Use this wireless interface for scanning.
    	//Allocate a new netlink socket, Retuns: Newly allocated netlink socket or NULL.
 	struct nl_sock *socket = nl_socket_alloc();
@@ -44,9 +52,29 @@ int main()
 		//0 on success or a negative error code.
 		if (genl_connect(socket) == 0)
 		{
-			 expectedId = genl_ctrl_resolve(socket, "nl80211");
-  			 nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, nlCallback, NULL);
+			expectedId = genl_ctrl_resolve(socket, "nl80211");
+  			nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, nlCallback, NULL);
+			struct nl_msg *msg = nlmsg_alloc();
+			int cmd = NL80211_CMD_GET_INTERFACE;
+			int ifIndex = if_nametoindex("wlan0");
+			int flags = 0;
 
+			genlmsg_put(msg, 0, 0, expectedId, 0, flags, cmd, 0);
+			NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, ifIndex);
+
+			 //send the messge (this frees it)
+    			ret = nl_send_auto_complete(socket, msg);
+
+		    	//block for message to return
+    			nl_recvmsgs_default(socket);
+
+			nla_put_failure:
+			    nlmsg_free(msg);
+			    return 1;
+
+
+			//allocate a message
+//    			nl_msg* msg = nlmsg_alloc();
 
 		}
 	}
@@ -57,13 +85,9 @@ int main()
 
 
 	//nl_socket_free(socket)
-
-
-
-
-
     printf("\n\nHei, test finished\n\n");
     return EXIT_SUCCESS;
+
 }
 
 
