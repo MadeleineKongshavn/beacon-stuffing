@@ -2,6 +2,7 @@
 #include <values.h>
 #include <string.h>
 
+#include<stdio.h>
 #include <net/if.h>
 #include <stdlib.h>
 
@@ -17,39 +18,9 @@
 #include "common/ieee802_11_defs.h"
 #include "common/ieee802_11_common.h"
 #include "common/hw_features_common.h"
-#include "ap/ieee802_11.h"
-#include "utils/common.h"
-#include "wps/wps_defs.h"
-#include "p2p/p2p.h"
-#include "ap/wpa_auth.h"
-#include "ap/wmm.h"
-#include "utils/os.h"
 
-# include<stdio.h>
-# include<stdlib.h>
-# include<ctype.h>
+#define os_zalloc(size) calloc(size, 1)
 
-
-//#include <cstring.h>
-//#include <um/include/shared/mem.h>
-//#include <mips/include/asm/mach-loongson/mem.h>
-//#include <include/config/fix/earlycon/mem.h>
-
-//#include "ap/ap_config.h"
-//#include "ap/sta_info.h"
-//#include "ap/p2p_hostapd.h"
-//#include "ap/ap_drv_ops.h"
-/*#include "ap/beacon.h"
-#include "ap/hs20.h"
-#include "ap/dfs.h"
-#include "ap/taxonomy.h"
-*/
-
-
-
-
-//#include "wpa_auth.h"
-//#include "wmm.h"
 
 struct cfg80211_beacon_data {
 	const uint8_t *head, *tail;
@@ -155,7 +126,7 @@ static int nl80211_parse_beacon(struct nlattr *attrs[],	struct cfg80211_beacon_d
 		bcn->probe_resp = nla_data(attrs[NL80211_ATTR_PROBE_RESP]);
 		bcn->probe_resp_len = nla_len(attrs[NL80211_ATTR_PROBE_RESP]);
 	}
-
+	printf("Haveinfo is: %d\n", haveinfo);
 	return -2;
 }
 
@@ -323,9 +294,24 @@ struct nl_msg * create_beacon_message(struct nl_sock *sk)
 
 	u8 *resp = NULL;
 
-
+	//initializes the data for this buffer!
 	head = os_zalloc(BEACON_HEAD_BUF_SIZE);
 	tail_len = BEACON_TAIL_BUF_SIZE;
+	head_len = BEACON_HEAD_BUF_SIZE;// added myself!
+
+//	tail_len += hostapd_mbo_ie_len(hapd);
+
+	tailpos = tail = os_malloc(tail_len);
+	if (head == NULL || tail == NULL) {
+		printf("Failed to set beacon data\n");
+		os_free(head);
+		os_free(tail);
+	}
+	printf("trying to set data\n");
+/*	head->frame_control = IEEE80211_FC(WLAN_FC_TYPE_MGMT,WLAN_FC_STYPE_BEACON);
+	head->duration = host_to_le16(0);
+	os_memset(head->da, 0xff, ETH_ALEN);
+	os_memcpy(head->bssid, hapd->own_addr, ETH_ALEN);*/
 
 
 //	const uint8_t head;
@@ -334,8 +320,8 @@ struct nl_msg * create_beacon_message(struct nl_sock *sk)
 
 
 //	printf("size of added data: %d ", sizeof(binary));
-//	nla_put(msg, NL80211_ATTR_BEACON_HEAD,sizeof(binary), binary); // error 0
-//	nla_put(msg, NL80211_ATTR_BEACON_TAIL,sizeof(binary2), binary2); // error 0
+	nla_put(msg, NL80211_ATTR_BEACON_HEAD,head_len, head); // error 0
+	nla_put(msg, NL80211_ATTR_BEACON_TAIL,tail_len, tail); // error 0
 
 //	nla_put(msg, NL80211_ATTR_BEACON_HEAD,sizeof(head), head); // error 0
 //	nla_put(msg, NL80211_ATTR_BEACON_TAIL,sizeof(data2), data2); // error 0
@@ -404,13 +390,14 @@ int main()
 	struct nl_sock *sk = allocate_socket();
 	struct nl_cb *cb = set_callback();
 //      struct nl_msg *msg = create_message(sk); //  nl_send_auto
-//      struct nl_msg *msg = create_beacon_message(sk); //  nl_send_auto
-        struct nl_msg *msg = rec_management_frames(sk); //  nl_send_auto
+	printf("\n\n\n\trying to create beacon\n\n\n");
+        struct nl_msg *msg = create_beacon_message(sk); //  nl_send_auto
+//        struct nl_msg *msg = rec_management_frames(sk); //  nl_send_auto
 
-//	struct cfg80211_beacon_data params;
+	struct cfg80211_beacon_data params;
 
-//	printf("\n\nTesting validation of message\n");
-//	validate_message(msg,&params);
+	printf("\n\nTesting validation of message\n");
+	validate_message(msg,&params);
 //	printf("\n\n");
 
 	nl_send_auto_complete(sk, msg);
