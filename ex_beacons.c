@@ -14,7 +14,6 @@ static int expectedId;
 
 static int nlCallback(struct nl_msg* msg, void* arg)
 {
-	printf("\nKom til callback\n");
 	//netlink messages all have an identical header on each message sent and received This header is used to store metadata about each
 	//netlink message and forms the base infrastructure of every netlink protocol
 	struct nlmsghdr * ret_hdr = nlmsg_hdr(msg);
@@ -49,6 +48,43 @@ static int nlCallback(struct nl_msg* msg, void* arg)
 //    }
 //    return 0;
 }
+int start_AP() {
+
+
+
+
+}
+
+
+// * @NL80211_CMD_STOP_AP: Stop AP operation on the given interface
+
+
+/**
+* Stops an AP operating  on the given interface. 
+* @NL80211_CMD_STOP_AP
+*/
+int stop_AP() {
+	struct nl_msg *msg = nlmsg_alloc();
+	int cmd = NL80211_CMD_STOP_AP;
+	int ifIndex = if_nametoindex("wlan0");
+	int flags = 0;
+
+	//Create the message header. 
+	genlmsg_put(msg, 0, 0, expectedId, 0, flags, cmd, 0);
+
+
+
+
+
+}
+
+
+int set_Beacon() {
+
+
+}
+
+
 int main()
 {
 	int ret;
@@ -71,35 +107,39 @@ int main()
 			//Modify the callback handler associated to the socket
 			//handle netlink handle(socket)
 			//type which type callback to set
-			//kind kind of callback
-			//func callback function
-			//arg argument to be passwd to callback function
+			//kind: kind of callback
+			//func: callback function
+			//arg: argument to be passwd to callback function
   			nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, nlCallback, NULL);
 
-			//Allocate a new  netlink message.
+			//Allocate space for this message.
 			struct nl_msg *msg = nlmsg_alloc();
-//			int cmd = NL80211_CMD_TRIGGER_SCAN;
-			int cmd = NL80211_CMD_GET_INTERFACE;
+			int cmd = NL80211_CMD_SET_BEACON;
 			int ifIndex = if_nametoindex("wlan0");
 			int flags = 0;
-			const char *IE_element = "IP address here";
-		
-			//Create the header of this message(setting up the initial message)
-			genlmsg_put(msg, 0, 0, expectedId, 0, flags, cmd, 0);
-			NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, ifIndex);
-//			nla_put_string(msg, NL80211_ATTR_IE, IE_element);
+			const char *IE_element = "66.66.66.66"
 
-			//send this  messge (this frees it)
+			//Create the message header. 
+			genlmsg_put(msg, 0, 0, expectedId, 0, flags, cmd, 0);
+			NLA_PUT_U32(msg, NL8, ifIndex); // 
+			nla_put_string(msg, NL80211_ATTR_IE, IE_element);
+
+For drivers that generate the beacon and probe responses
+ *	internally, the following attributes must be provided: %NL80211_ATTR_IE,
+ *	%NL80211_ATTR_IE_PROBE_RESP and %NL80211_ATTR_IE_ASSOC_RESP.
+
+
+
+%NL80211_ATTR_BEACON_HEAD and %NL80211_ATTR_BEACON_TAIL
+
+
+
+			 //send the messge (this frees it)
     			ret = nl_send_auto_complete(socket, msg);
 
-//			while ( 1 ) {
-			    	//block for message to return
-	    			nl_recvmsgs_default(socket);
-				printf("message returned");
-//			}
-
-
-
+		    	//block for message to return
+    			nl_recvmsgs_default(socket);
+			printf("message returned");
 
 			nla_put_failure:
 			    nlmsg_free(msg);
@@ -148,7 +188,7 @@ int main()
 // *	interface. %NL80211_ATTR_MAC is used to specify PeerSTAAddress (and
 // *	BSSID in case of station mode). %NL80211_ATTR_SSID is used to specify
 // *	the SSID (mainly for association, but is included in authentication
-// *	request, too, to help BSS selection. %NL80211_ATTR_WIPHY_FREQ is used
+// *	request, too, to help BSS selection. %NL80211NL80211_CMD_AUTHENTICATE_ATTR_WIPHY_FREQ is used
 // *	to specify the frequence of the channel in MHz. %NL80211_ATTR_AUTH_TYPE
 // *	is used to specify the authentication type. %NL80211_ATTR_IE is used to
 // *	define IEs (VendorSpecificInfo, but also including RSN IE and FT IEs)
@@ -183,3 +223,15 @@ int main()
 // * @NL80211_CMD_DISASSOCIATE: disassociation request and notification; like
 // *	NL80211_CMD_AUTHENTICATE but for Disassociation frames (similar to
 // *	MLME-DISASSOCIATE.request and MLME-DISASSOCIATE.indication primitives).
+NL80211_ATTR_IE
+
+
+ * @NL80211_CMD_SET_CHANNEL: Set the channel (using %NL80211_ATTR_WIPHY_FREQ
+ *	and the attributes determining channel width) the given interface
+ *	(identifed by %NL80211_ATTR_IFINDEX) shall operate on.
+ *	In case multiple channels are supported by the device, the mechanism
+ *	with which it switches channels is implementation-defined.
+ *	When a monitor interface is given, it can only switch channel while
+ *	no other interfaces are operating to avoid disturbing the operation
+ *	of any other interfaces, and other interfaces will again take
+ *	precedence when they are used.

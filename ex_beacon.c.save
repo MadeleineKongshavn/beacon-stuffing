@@ -14,7 +14,6 @@ static int expectedId;
 
 static int nlCallback(struct nl_msg* msg, void* arg)
 {
-	printf("\nKom til callback\n");
 	//netlink messages all have an identical header on each message sent and received This header is used to store metadata about each
 	//netlink message and forms the base infrastructure of every netlink protocol
 	struct nlmsghdr * ret_hdr = nlmsg_hdr(msg);
@@ -76,30 +75,33 @@ int main()
 			//arg argument to be passwd to callback function
   			nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, nlCallback, NULL);
 
-			//Allocate a new  netlink message.
+			//Allocate space for this message.
 			struct nl_msg *msg = nlmsg_alloc();
-//			int cmd = NL80211_CMD_TRIGGER_SCAN;
 			int cmd = NL80211_CMD_GET_INTERFACE;
 			int ifIndex = if_nametoindex("wlan0");
 			int flags = 0;
-			const char *IE_element = "IP address here";
-		
-			//Create the header of this message(setting up the initial message)
+			
+			//Create the message header. 
 			genlmsg_put(msg, 0, 0, expectedId, 0, flags, cmd, 0);
-			NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, ifIndex);
-//			nla_put_string(msg, NL80211_ATTR_IE, IE_element);
 
-			//send this  messge (this frees it)
+
+			NLA_PUT_U32(msg, NL8, ifIndex);
+
+
+
+
+			const char *IE_element = "66.66.66.66"
+			nla_put_string(msg, NL80211_ATTR_IE, strlen(IE_element), IE_element);
+
+
+
+
+			 //send the messge (this frees it)
     			ret = nl_send_auto_complete(socket, msg);
 
-//			while ( 1 ) {
-			    	//block for message to return
-	    			nl_recvmsgs_default(socket);
-				printf("message returned");
-//			}
-
-
-
+		    	//block for message to return
+    			nl_recvmsgs_default(socket);
+			printf("message returned");
 
 			nla_put_failure:
 			    nlmsg_free(msg);
@@ -148,7 +150,7 @@ int main()
 // *	interface. %NL80211_ATTR_MAC is used to specify PeerSTAAddress (and
 // *	BSSID in case of station mode). %NL80211_ATTR_SSID is used to specify
 // *	the SSID (mainly for association, but is included in authentication
-// *	request, too, to help BSS selection. %NL80211_ATTR_WIPHY_FREQ is used
+// *	request, too, to help BSS selection. %NL80211NL80211_CMD_AUTHENTICATE_ATTR_WIPHY_FREQ is used
 // *	to specify the frequence of the channel in MHz. %NL80211_ATTR_AUTH_TYPE
 // *	is used to specify the authentication type. %NL80211_ATTR_IE is used to
 // *	define IEs (VendorSpecificInfo, but also including RSN IE and FT IEs)
@@ -183,3 +185,4 @@ int main()
 // * @NL80211_CMD_DISASSOCIATE: disassociation request and notification; like
 // *	NL80211_CMD_AUTHENTICATE but for Disassociation frames (similar to
 // *	MLME-DISASSOCIATE.request and MLME-DISASSOCIATE.indication primitives).
+NL80211_ATTR_IE
