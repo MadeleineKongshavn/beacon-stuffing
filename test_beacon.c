@@ -1,3 +1,7 @@
+#include <memory.h>
+#include <values.h>
+#include <string.h>
+
 #include <net/if.h>
 #include <stdlib.h>
 
@@ -9,8 +13,59 @@
 #include <netlink/genl/ctrl.h>
 #include <netlink/netlink.h>
 
-static int expectedId;
+#include "utils/includes.h"
+#include "common/ieee802_11_defs.h"
+#include "common/ieee802_11_common.h"
+#include "common/hw_features_common.h"
+#include "ap/ieee802_11.h"
+#include "utils/common.h"
+#include "wps/wps_defs.h"
+#include "p2p/p2p.h"
+#include "ap/wpa_auth.h"
+#include "ap/wmm.h"
+#include "utils/os.h"
 
+# include<stdio.h>
+# include<stdlib.h>
+# include<ctype.h>
+
+
+//#include <cstring.h>
+//#include <um/include/shared/mem.h>
+//#include <mips/include/asm/mach-loongson/mem.h>
+//#include <include/config/fix/earlycon/mem.h>
+
+//#include "ap/ap_config.h"
+//#include "ap/sta_info.h"
+//#include "ap/p2p_hostapd.h"
+//#include "ap/ap_drv_ops.h"
+/*#include "ap/beacon.h"
+#include "ap/hs20.h"
+#include "ap/dfs.h"
+#include "ap/taxonomy.h"
+*/
+
+
+
+
+//#include "wpa_auth.h"
+//#include "wmm.h"
+
+struct cfg80211_beacon_data {
+	const uint8_t *head, *tail;
+	const uint8_t *beacon_ies;
+	const uint8_t *proberesp_ies;
+	const uint8_t *assocresp_ies;
+	const uint8_t *probe_resp;
+
+	size_t head_len, tail_len;
+	size_t beacon_ies_len;
+	size_t proberesp_ies_len;
+	size_t assocresp_ies_len;
+	size_t probe_resp_len;
+};
+
+static int expectedId;
 
 static int is_valid_ie_attr(const struct nlattr *attr)
 {
@@ -36,40 +91,47 @@ static int is_valid_ie_attr(const struct nlattr *attr)
 
 		len -= elemlen;
 		pos += 2 + elemlen;
-	}
+		}
 
 	return 1;
 }
-/*
-static void nl80211_parse_beacon(struct nlattr *attrs[],struct cfg80211_beacon_data *bcn)
+///struct sk_buff *msg
+static int nl80211_parse_beacon(struct nlattr *attrs[],	struct cfg80211_beacon_data *bcn)
 {
-	bool haveinfo = false;
+	int haveinfo = 0;
 
 	if (!is_valid_ie_attr(attrs[NL80211_ATTR_BEACON_TAIL]) ||
 	    !is_valid_ie_attr(attrs[NL80211_ATTR_IE]) ||
 	    !is_valid_ie_attr(attrs[NL80211_ATTR_IE_PROBE_RESP]) ||
 	    !is_valid_ie_attr(attrs[NL80211_ATTR_IE_ASSOC_RESP]))
-		return -EINVAL;
-
+		{
+		printf("Sendt message fails in is_valid_ie_attr, tail: %d, IE: %d, probe: %d, assoc: %d\n", is_valid_ie_attr(attrs[NL80211_ATTR_BEACON_TAIL]), is_valid_ie_attr(attrs[NL80211_ATTR_IE]), is_valid_ie_attr(attrs[NL80211_ATTR_IE_PROBE_RESP]), is_valid_ie_attr(attrs[NL80211_ATTR_IE_ASSOC_RESP]));
+		return -23;
+		}
 	memset(bcn, 0, sizeof(*bcn));
 
 	if (attrs[NL80211_ATTR_BEACON_HEAD]) {
 		bcn->head = nla_data(attrs[NL80211_ATTR_BEACON_HEAD]);
 		bcn->head_len = nla_len(attrs[NL80211_ATTR_BEACON_HEAD]);
 		if (!bcn->head_len)
-			return -EINVAL;
-		haveinfo = true;
+		{
+			printf("beacon head not valid");
+			return -24;
+		}
+		haveinfo = 1;
 	}
 
 	if (attrs[NL80211_ATTR_BEACON_TAIL]) {
 		bcn->tail = nla_data(attrs[NL80211_ATTR_BEACON_TAIL]);
 		bcn->tail_len = nla_len(attrs[NL80211_ATTR_BEACON_TAIL]);
-		haveinfo = true;
+		haveinfo = 1;
 	}
 
 	if (!haveinfo)
-		return -EINVAL;
-
+		{
+		printf("You dont have the info");
+		return -25;
+		}
 	if (attrs[NL80211_ATTR_IE]) {
 		bcn->beacon_ies = nla_data(attrs[NL80211_ATTR_IE]);
 		bcn->beacon_ies_len = nla_len(attrs[NL80211_ATTR_IE]);
@@ -94,9 +156,12 @@ static void nl80211_parse_beacon(struct nlattr *attrs[],struct cfg80211_beacon_d
 		bcn->probe_resp_len = nla_len(attrs[NL80211_ATTR_PROBE_RESP]);
 	}
 
-	return 0;
+	return -2;
 }
-*/
+
+
+
+
 
 void parse_message( struct nlmsghdr * ret_hdr )
 {
@@ -138,8 +203,8 @@ static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *ar
 	struct nlmsghdr ret_hdr = err->msg;
 	struct nlmsghdr *  mem_ret_hdr = &ret_hdr;
         struct genlmsghdr *gnlh = (struct genlmsghdr*) nlmsg_data(mem_ret_hdr);
-	struct nlattr* attributes = genlmsg_attrdata(gnlh, 0); 
-        int remaining = genlmsg_attrlen(gnlh, 0);               // Returns length of attribute length.
+	struct nlattr* attributes = genlmsg_attrdata(gnlh, 0);
+        int remaining = genlmsg_attrlen(gnlh, 0); // Returns length of attribute length.
 
 //	ret_hdr = err->msg;
 
@@ -150,7 +215,7 @@ static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *ar
 	// Callback for errors.
 	printf("\nError_handler() called.\n");
 	printf("Error: %d\n", err->error);
-	printf("Message length: %d\n",ret_hdr.nlmsg_len);
+/*	printf("Message length: %d\n",ret_hdr.nlmsg_len);
 	printf("Message type: %d\n", ret_hdr.nlmsg_type);
 	printf("Message flags: %d\n", ret_hdr.nlmsg_flags);
 	printf("Message seq: %d\n", ret_hdr.nlmsg_seq);
@@ -170,7 +235,7 @@ static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *ar
 
 //	tryvalid(mem_ret_hdr);
 
-
+*/
 	return NL_STOP;
 }
 static int ack_handler(struct nl_msg *msg, void *arg)
@@ -201,6 +266,7 @@ static int valid_handler(struct nl_msg *msg, void *arg)
 	while (nla_ok(attributes, remaining)) {
 
 	      	/* parse attribute here */
+
 		parse_attribute(attributes);
         	attributes = nla_next(attributes, &remaining);
 	};
@@ -240,22 +306,47 @@ struct nl_msg * create_message(struct nl_sock *sk)
 }
 struct nl_msg * create_beacon_message(struct nl_sock *sk)
 {
+	#define BEACON_HEAD_BUF_SIZE 256
+	#define BEACON_TAIL_BUF_SIZE 512
+
         expectedId = genl_ctrl_resolve(sk, "nl80211");
         struct nl_msg *msg = nlmsg_alloc();
 	int cmd = NL80211_CMD_SET_BEACON;
-//	int cmd = NL80211_CMD_GET_INTERFACE;
         int flags = 0;
-//	int ifIndex = if_nametoindex("wlan0");
+
 	genlmsg_put(msg, 0, 0, expectedId, 0, flags, cmd, 0);
-	nla_put(msg, NL80211_ATTR_BEACON_HEAD, 0, NULL); // error 0
-	nla_put(msg, NL80211_ATTR_BEACON_TAIL, 0, NULL); // error 0
-	nla_put(msg, NL80211_ATTR_PROBE_RESP, 0, NULL);
 
-	nla_put(msg, NL80211_ATTR_IE_PROBE_RESP, 0, NULL);
-	nla_put(msg, NL80211_ATTR_IE_ASSOC_RESP, 0, NULL);
-	nla_put(msg, NL80211_ATTR_IE, 0, NULL);
+	struct ieee80211_mgmt *head = NULL;
+	u8 *tail = NULL;
+	size_t head_len = 0, tail_len = 0;
+	u8 *pos, *tailpos, *csa_pos;
 
-//	nla_put_u32(msg, NL80211_ATTR_BEACON_INTERVAL, 100);
+	u8 *resp = NULL;
+
+
+	head = os_zalloc(BEACON_HEAD_BUF_SIZE);
+	tail_len = BEACON_TAIL_BUF_SIZE;
+
+
+//	const uint8_t head;
+//	nla_put_data(msg,NL80211_ATTR_BEACON_HEAD,&head);
+//struct nl_data * data)
+
+
+//	printf("size of added data: %d ", sizeof(binary));
+//	nla_put(msg, NL80211_ATTR_BEACON_HEAD,sizeof(binary), binary); // error 0
+//	nla_put(msg, NL80211_ATTR_BEACON_TAIL,sizeof(binary2), binary2); // error 0
+
+//	nla_put(msg, NL80211_ATTR_BEACON_HEAD,sizeof(head), head); // error 0
+//	nla_put(msg, NL80211_ATTR_BEACON_TAIL,sizeof(data2), data2); // error 0
+//	int ok = nla_put(msg, NL80211_ATTR_BEACON_TAIL, 0, NULL); // error 0
+//	nla_put(msg, NL80211_ATTR_IE_PROBE_RESP, 0, NULL);
+//	nla_put(msg, NL80211_ATTR_IE_ASSOC_RESP, 0, NULL);
+//	nla_put(msg, NL80211_ATTR_IE, 0, NULL);
+
+
+//	printf("OK returned: %d", ok);
+
 
 	return msg;
 }
@@ -272,32 +363,55 @@ struct nl_cb * set_callback()
 	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
 	return cb;
 }
-void validate_message(struct nl_msg *msg)
+void validate_message(struct nl_msg *msg, struct cfg80211_beacon_data *bcn)
 {
+//	int haveinfo = 0;
+
         struct nlmsghdr* header = nlmsg_hdr(msg);       // retrives the actual netlink message
         struct genlmsghdr *gnlh = (struct genlmsghdr*) nlmsg_data(header);
+	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
+
+	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
 
         struct nlattr* attributes = genlmsg_attrdata(gnlh, 0);  // points to the beginning of the payload, to the first attribute header.  //0 is length og <USER> head$
         int remaining = genlmsg_attrlen(gnlh, 0);               // Returns length of attribute length.
 	printf("valid nlms and genlms BEFORE sending? %d\n", genlmsg_valid_hdr(header, sizeof(struct nlmsghdr)));
 	printf("Nla_ok BEFORE sending says: %d\n",nla_ok(attributes, remaining));
-        while (nla_ok(attributes, remaining)) {
 
-                /* parse attribute here */
-                parse_attribute(attributes);
-                attributes = nla_next(attributes, &remaining);
-        };
+	struct cfg80211_beacon_data params;
+	int k = nl80211_parse_beacon(tb_msg, &params);
+	printf("Message validation is: %d ",k);
+
+}
+struct nl_msg *  rec_management_frames(struct nl_sock *sk)
+{
+        expectedId = genl_ctrl_resolve(sk, "nl80211");
+	struct nl_msg *msg = nlmsg_alloc();
+
+	int cmd = NL80211_CMD_REGISTER_FRAME;
+
+	int ifIndex = if_nametoindex("wlan0");
+        int flags = 0;
+	genlmsg_put(msg, 0, 0, expectedId, 0, flags, cmd, 0);
+        nla_put_u32(msg, NL80211_ATTR_IFINDEX, ifIndex);
+	nla_put_u16(msg, NL80211_ATTR_FRAME_TYPE, 0x08);
+	nla_put_u8(msg, NL80211_ATTR_FRAME_MATCH, 0xB);
+	return msg;
+
 }
 int main()
 {
 	struct nl_sock *sk = allocate_socket();
 	struct nl_cb *cb = set_callback();
 //      struct nl_msg *msg = create_message(sk); //  nl_send_auto
-        struct nl_msg *msg = create_beacon_message(sk); //  nl_send_auto
+//      struct nl_msg *msg = create_beacon_message(sk); //  nl_send_auto
+        struct nl_msg *msg = rec_management_frames(sk); //  nl_send_auto
 
-	printf("\n\nTesting validation of message\n");
-	validate_message(msg);
-	printf("\n\n");
+//	struct cfg80211_beacon_data params;
+
+//	printf("\n\nTesting validation of message\n");
+//	validate_message(msg,&params);
+//	printf("\n\n");
 
 	nl_send_auto_complete(sk, msg);
 

@@ -1,3 +1,23 @@
 #!/bin/bash
-gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=1 ./test_beacon
-#gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=4 ./test_beacon
+##gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=1 ./test_beacon
+
+#gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=1 ./test_beacon
+
+#gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -I/usr/src/linux-headers-3.13.0-32-generic/include/linux/  -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=1 ./test_beacon
+
+#gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -I/usr/src/linux-headers-3.13.0-32-generic/include/  -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=1 ./test_beacon
+
+#gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -I/usr/src/linux-headers-3.13.0-32/include/  -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=1 ./test_beacon
+
+#gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -I/home/madeleine/beacon-stuffing/src/ -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=1 ./test_beacon
+
+
+
+gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -I/home/madeleine/beacon-stuffing/src/ -I/usr/src/linux-headers-3.13.0-32-generic/ -I/usr/src/linux-headers-3.13.0-32/arch/ -lnl-3 -lnl-genl-3 -o test_beacon; NLDBG=1 ./test_beacon
+
+
+
+
+
+##/usr/src/linux-headers-3.13.0-32-generic/include/config/cfg80211.h
+##/usr/src/linux-headers-3.13.0-32-generic/include/
