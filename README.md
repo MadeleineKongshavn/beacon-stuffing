@@ -1,1 +1,1 @@
-# beacon-stuffing
+# Beacon-stuffing
