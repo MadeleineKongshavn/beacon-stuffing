@@ -22,7 +22,7 @@ static int expectedId;
 *       send an NLMSG_ERROR message for every failed packet.
 */
 
-/*NL80211_CMD_SET_BEACON: set the beacon on an access point interface
+NL80211_CMD_SET_BEACON: set the beacon on an access point interface
  *	using the %NL80211_ATTR_BEACON_INTERVAL, %NL80211_ATTR_DTIM_PERIOD,
  *	%NL80211_ATTR_BEACON_HEAD and %NL80211_ATTR_BEACON_TAIL attributes.
 
@@ -43,7 +43,7 @@ This removes need from drivers to parse the beacon tail/head data
 to figure out what crypto settings are to be used in AP mode in case
 the Beacon and Probe Response frames are fully constructed in the
 driver/firmware.
-*/
+
 
 static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg) {
     // Callback for errors.
@@ -128,7 +128,6 @@ static int family_handler(struct nl_msg *msg, void *arg) {
     printf("Message noop: %d \t message error: %d \t message done: %d", NLMSG_NOOP, NLMSG_ERROR, NLMSG_DONE);
 
     struct genlmsghdr *gnlh = (struct genlmsghdr*) nlmsg_data(ret_hdr);
-    printf("CMD response: %d",gnlh->cmd);
 
 
     return NL_SKIP;

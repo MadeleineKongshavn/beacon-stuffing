@@ -32,7 +32,7 @@ static int nlCallback(struct nl_msg* msg, void* arg)
 
     if (tb_msg[NL80211_ATTR_IFTYPE]) {
         int type = nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE]);
-
+//NL80211_ATTR_IFINDEX
         printf("Type: %d", type);
     }
     return 0;
