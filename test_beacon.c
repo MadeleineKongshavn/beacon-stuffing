@@ -31,10 +31,10 @@ static int ack_handler(struct nl_msg *msg, void *arg)
 }
 static int valid_handler(struct nl_msg *msg, void *arg)
 {
-	struct nlmsghdr* header = nlmsg_hdr(msg); // retrives the actual netlink message
-//	nla_data(header);
+	const struct nlmsghdr* header = nlmsg_hdr(msg); // retrives the actual netlink message
+	struct genlmsghdr *gnlh = (struct genlmsghdr*) nlmsg_data(header);
 
-//	nlmsg_data(const struct nlmsghdr *nlh);
+//	nla_data(header);
 
 	printf("Valid handler called()\n");
 	return NL_OK;
@@ -61,10 +61,8 @@ struct nl_msg * create_message(struct nl_sock *sk)
 	genlmsg_put(msg, 0, 0, expectedId, 0, flags, cmd, 0);
         NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, ifIndex);
 
-
 	nla_put_failure:
 		nlmsg_free(msg);
-
 
 	return msg;
 }
@@ -74,22 +72,18 @@ struct nl_cb * set_callback()
 	//Set ACK callback.
 	nl_cb_set(cb,NL_CB_SEND_ACK,NL_CB_CUSTOM, ack_handler, NULL);
 	nl_cb_set(cb,NL_CB_ACK,NL_CB_CUSTOM, ack_handler, NULL);
-	//Set VALID callback.. 
+	//Set VALID callback.
 	nl_cb_set(cb,NL_CB_VALID,NL_CB_CUSTOM, valid_handler, NULL);
-	//Set ERROR handler. 
+	//Set ERROR handler.
 	nl_cb_set(cb,NL_CB_INVALID,NL_CB_VERBOSE, error_msg_handler, NULL);
 	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
 	return cb;
-
-
 }
 int main()
 {
 	struct nl_sock *sk = allocate_socket();
 	struct nl_cb *cb = set_callback();
-        struct nl_msg *msg = create_message(sk);
-
-//  nl_send_auto
+        struct nl_msg *msg = create_message(sk); //  nl_send_auto
 
 	nl_send_auto_complete(sk, msg);
 
