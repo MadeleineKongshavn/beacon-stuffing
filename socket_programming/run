@@ -1,2 +1,4 @@
 gcc GCP_server.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -I/home/madeleine/beacon-stuffing/src/ -I/usr/src/linux-headers-3.13.0-32-generic/ -I/usr/src/linux-headers-3.13.0-32/arch/ -lnl-3 -lnl-genl-3 -o socket; NLDBG=1
-./socket
+./socket &
+
+
