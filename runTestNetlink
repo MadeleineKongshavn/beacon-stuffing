@@ -1,0 +1,1 @@
+gcc -Wall -I/usr/include/libnl3/ test2.c -o main -lnl-3 -lnl-genl-3
