@@ -1,6 +1,6 @@
 //#define	ENOMEM		12	/* Out of Memory */
 //#define	EINVAL		22	/* Invalid argument */
-//#define ENOSPC		28	/* No space left on device */
+//#define       ENOSPC		28	/* No space left on device */
 #include <net/if.h>
 #include <stdlib.h>
 

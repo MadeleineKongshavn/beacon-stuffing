@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc test_beacon.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -lnl-3 -lnl-genl-3 -o test_beacon; ./test_beacon

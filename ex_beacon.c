@@ -1,3 +1,78 @@
+kernel multicast notifications
+/*
+struct nlmsghdr {
+       __u32 nlmsg_len;    /* Length of message including header
+       __u16 nlmsg_type;   /* Type of message content
+       __u16 nlmsg_flags;  /* Additional flags
+       __u32 nlmsg_seq;    /* Sequence number
+       __u32 nlmsg_pid;    /* Sender port ID
+ };
+The Netlink message header is shown below.
+
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                          Length                             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |            Type              |           Flags              |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                      Sequence Number                        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                      Process ID (PID)                       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ Netlink messages consist of a byte stream with one or multiple
+   Netlink headers and an associated payload.  If the payload is too big
+   to fit into a single message it, can be split over multiple Netlink
+   messages, collectively called a multipart message. Individual IP services specify more message types, e.g.,
+   NETLINK_ROUTE service specifies several types, 
+ 
+#define NLM_F_REQUEST           1
+
+#define NLM_F_MULTI             2
+
+#define NLM_F_ACK               4
+
+#define NLM_F_ECHO              8
+
+
+Generic Netlink families are defined by the genl_family structure,
+ struct genl_family
+ {       
+       unsigned int            id;
+       unsigned int            hdrsize;
+       char                    name[GENL_NAMSIZ];
+       unsigned int            version;
+       unsigned int            maxattr;
+       struct nlattr **        attrbuf;
+       struct list_head        ops_list;
+       struct list_head        family_list;
+ };
+
+Add Generic Netlink headers to Netlink message.
+
+
+void* genlmsg_put
+
+Parameters
+msg	Netlink message object
+port	Netlink port or NL_AUTO_PORT
+seq	Sequence number of message or NL_AUTO_SEQ
+family	Numeric family identifier
+hdrlen	Length of user header
+flags	Additional Netlink message flags (optional)
+cmd	Numeric command identifier
+version	Interface version
+
+Generic Netlink uses the standard Netlink subsystem as a transport layer which means that the foundation of the Generic Netlink message
+ is the standard Netlink message format
+
+
+When an error occurs an NLMSG_ERROR message is returned to the client with the error code returned by the Generic Netlink operation handler. Clients can also request the NLMSG_ERROR message when no error has occurred by setting the NLM_F_ACK flag on requests.
+
+
+*/
+
+
 #include <net/if.h>
 #include <stdlib.h>
 
@@ -77,7 +152,8 @@ int main()
   			nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, nlCallback, NULL);
 
 			//Allocate a new  netlink message.
-			struct nl_msg *msg = nlmsg_alloc();
+//NLM_F_REQUEST
+			struct nl_msg *msg = nlmsg_alloc(void);
 //			int cmd = NL80211_CMD_TRIGGER_SCAN;
 			int cmd = NL80211_CMD_GET_INTERFACE;
 			int ifIndex = if_nametoindex("wlan0");

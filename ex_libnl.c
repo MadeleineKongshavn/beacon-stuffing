@@ -26,7 +26,8 @@ static int nlCallback(struct nl_msg* msg, void* arg)
     }
 
     struct genlmsghdr *gnlh = (struct genlmsghdr*) nlmsg_data(ret_hdr);
-
+    int i = gnlh->id;
+    printf("cmd code: %d\n", i);
     nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
               genlmsg_attrlen(gnlh, 0), NULL);
 

@@ -32,3 +32,5 @@ clean :
 ##gcc ex_libnl.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -lnl-3 -lnl # works with both genl_connect  and allocate
 ## gcc ex_libnl.c -Wall -g -I/usr/lib/ -I/usr/include/libnl3/ -lnl-3 -lnl-genl-3
 
+$ gcc myprogram.c -o myprogram $(pkgconfig --cflags --libs libnl-3.0)
+NLCB=debug ./myprogram

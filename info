@@ -1,0 +1,71 @@
+- nlmsg_attrlen(nlh, hdrlen)
+- nlmsg_attrdata(nlh, hdrlen)
+
+
+The function nlmsg_attrdata() returns a pointer to the begin of the
+attributes section. The length of the attributes section is returned by
+the function nlmsg_attrlen().
+
+The function nlmsg_parse() validate a complete netlink message in one step.
+If hdrlen > 0 it will first call nlmsg_valid_hdr() to check if the protocol
+header fits into the message. If there is more payload to parse,
+ it will assume it to be attributes and parse the payload accordingly.
+The function behaves exactly like nla_parse() when parsing attributes,
+see [core_attr_parse_easy]
+
+
+Appending the netlink message header
+After allocating struct nl_msg, the netlink message header needs to be 
+added unless one of the function nlmsg_alloc_simple() or nlmsg_inherit()
+ have been used for allocation in which case this step will replace the 
+netlink message header already in place.
+
+#include <netlink/msg.h>
+struct nlmsghdr *nlmsg_put(struct nl_msg *msg, uint32_t port, uint32_t seqnr,
+
+                           int nlmsg_type, int payload, int nlmsg_flags);
+
+The function nlmsg_put() will build a netlink message header out of 
+nlmsg_type, nlmsg_flags, seqnr, and port and copy it into the netlink message.
+seqnr can be set to NL_AUTO_SEQ to indiciate that the next possible sequence
+ number should be used automatically. To use this feature, 
+the message must be sent using the function nl_send_auto(). Like port, the
+argument seqnr can be set to NL_AUTO_PORT indicating that the local port 
+assigned to the socket should be used as source port.
+
+
+
+/*
+
+ * Add header with message type MY_MSGTYPE, the flag NLM_F_CREATE,
+
+ * let library fill port and sequence number, and reserve room for
+
+ * struct myhdr
+
+ */
+
+hdr = nlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, MY_MSGTYPE, sizeof(hdr),
+ NLM_F_CREATE);
+
+
+
+include <netlink/msg.h>
+
+#include <netlink/attr.h>
+
+
+
+struct nlattr *hdr = nlmsg_attrdata(msg, 0);
+
+int remaining = nlmsg_attrlen(msg, 0);
+
+
+
+while (nla_ok(hdr, remaining)) {
+
+        /* parse attribute here */
+
+        hdr = nla_next(hdr, &remaining);
+
+};
