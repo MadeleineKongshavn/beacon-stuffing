@@ -1,4 +1,5 @@
 #!/bin/bash
+git config --global user.email "madekoro@hotmail.com"
 git config --global user.name "madeleineKongshavn"
 sudo git add *
 sudo git commit -am $1
